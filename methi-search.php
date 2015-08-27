@@ -8,12 +8,12 @@ Author: Siddharth Kothari
 Author URI: https://twitter.com/siddharthlatest
 */
 
-define('METHI_VERSION', '0.1')
-
 if (!defined('ABSPATH')) {
 	die('script kiddies, f*ck off');
 }
 require_once 'methi-index.php';
+
+define('METHI_VERSION', '0.1');
 
 add_action('init', 'add_wpdata_to_appbase');
 add_action('publish_post', 'add_wpdata_to_appbase');
