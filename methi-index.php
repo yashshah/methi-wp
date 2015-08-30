@@ -12,7 +12,7 @@
         ),
         'body' => json_encode(array(
           "title" => $post->post_title,
-          "date" => $post->post_date,
+          "created_at" => $post->post_date,
           "author" => $post->post_author,
           "body" => $post->post_content
         ))
