@@ -23,4 +23,6 @@ define('METHI_VERSION', '0.1');
 
 add_action('init', 'add_wpdata_to_appbase');
 add_action('publish_post', 'add_wpdata_to_appbase');
+add_action('wp_footer', 'addsearchscriptfooter');
+
 ?>
