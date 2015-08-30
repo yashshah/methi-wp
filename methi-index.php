@@ -17,7 +17,7 @@
           "post_content" => $post->post_content
         ))
       );
-      $response = wp_remote_post("https://".$APPBASE_USERNAME.":".$APPBASE_PASSWORD."@scalr.api.appbase.io/".$APPBASE_APPNAME."/posts/", $args);
+      $response = wp_remote_post("https://".$APPBASE_USERNAME.":".$APPBASE_PASSWORD."@scalr.api.appbase.io/".$APPBASE_APPNAME."/article/", $args);
       var_dump($response['response']);
       echo "<br>";
     }
