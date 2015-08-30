@@ -79,5 +79,22 @@
     }
   }
   
-  
+  function addsearchscriptfooter()
+  {
+	?>
+	<script type="text/javascript">
+	(function($){
+	$(document).ready(function(){
+		var searchboxlength = $("input[name=s]").length;
+		//alert(searchboxlength);
+		if(searchboxlength > 0)
+		{
+			$("input[name=s]").addClass("appbase_external_search");
+		}
+	});
+	})(jQuery);
+	var appbase_variables={app_name:"methi-yourstory",credentials:"uw3qB83pZ:ac1a0fc1-e4eb-4344-9c0d-2c24c69fc91d",index_document_type:"article"},src="https://s3-us-west-1.amazonaws.com/methi/methi/js/app.js",s=document.createElement("script");s.type="text/javascript",s.async=!0,s.src=src,s.addEventListener("load",function(){},!1);var head=document.getElementsByTagName("head")[0];head.appendChild(s);
+	</script>
+	<?php
+  }
 ?>
