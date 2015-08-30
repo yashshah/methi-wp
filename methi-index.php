@@ -14,7 +14,7 @@
           "title" => $post->post_title,
           "date" => $post->post_date,
           "author" => $post->post_author,
-          "post_content" => $post->post_content
+          "body" => $post->post_content
         ))
       );
       $response = wp_remote_post("https://".$APPBASE_USERNAME.":".$APPBASE_PASSWORD."@scalr.api.appbase.io/".$APPBASE_APPNAME."/article/", $args);
