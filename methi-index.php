@@ -32,7 +32,24 @@
 	die;*/
 	
     foreach($posts as $post) {
+	
+	$postimage = wp_get_attachment_url( get_post_thumbnail_id($post->ID) );
+	$alltags = wp_get_post_tags($post->ID);
+	
+	if($alltags != '' && $alltags != null && !empty($alltags))
+	{
+		$tagarray = array();
+		foreach($alltags as $tag)
+		{
+			array_push($tagarray, $tag->name);
+		}
+		$tagstring = implode(',',$tagarray); 
+	}
+	
+	//echo $tagstring; die; 
+	
       $args = array(
+	    'method' => 'POST',
         'headers' => array(
           "Authorization" => "Basic ".base64_encode($APPBASE_USERNAME.":".$APPBASE_PASSWORD)
         ),
@@ -40,14 +57,25 @@
           "title" => $post->post_title,
 		  "body" => $post->post_content,
 		  "link" => get_permalink($post->ID),
-          "date" => $post->post_date,
+		  "image_url" => $postimage,
+		  "tags" => $tagstring,
+          "created_at" => $post->post_date,
+		  "updated_at" => $post->post_modified,
           "author" => $post->post_author,
           
         ))
       );
-      $response = wp_remote_post("https://".$APPBASE_USERNAME.":".$APPBASE_PASSWORD."@scalr.api.appbase.io/".$APPBASE_APPNAME."/article/", $args);
-      var_dump($response['response']);
-      echo "<br>";
+      $response = wp_remote_post("https://".$APPBASE_USERNAME.":".$APPBASE_PASSWORD."@scalr.api.appbase.io/".$APPBASE_APPNAME."/article/$post->ID", $args);
+      
+		if ( is_wp_error( $response ) ) {
+		   $error_message = $response->get_error_message();
+		   echo "Something went wrong: $error_message";
+		} 
+		/*else {
+		   echo 'Response:<pre>';
+		   print_r( $response['response']['message'] );
+		   echo '</pre>';
+		}*/
     }
   }
 ?>

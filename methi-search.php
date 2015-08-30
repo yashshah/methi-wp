@@ -16,7 +16,8 @@ Author URI: https://twitter.com/yashshah
 if (!defined('ABSPATH')) {
 	die('script kiddies, f*ck off');
 }
-require_once 'methi-index.php';
+
+require_once( plugin_dir_path( __FILE__ ) . 'methi-index.php' );
 
 define('METHI_VERSION', '0.1');
 
