@@ -93,7 +93,7 @@
 		}
 	});
 	})(jQuery);
-	var appbase_variables={app_name:"faltu",credentials:"dAIbIAm5W:d91257af-1fe4-44ab-84cb-e93cb3768b92",index_document_type:"article"},src="http://cdn.appbase.io/methi/js/app.js",s=document.createElement("script");s.type="text/javascript",s.async=!0,s.src=src,s.addEventListener("load",function(){},!1);var head=document.getElementsByTagName("head")[0];head.appendChild(s);
+	var appbase_variables={app_name:"faltu",credentials:"dAIbIAm5W:d91257af-1fe4-44ab-84cb-e93cb3768b92",index_document_type:"article"},src="https://s3-us-west-1.amazonaws.com/methi/methi/js/app.js",s=document.createElement("script");s.type="text/javascript",s.async=!0,s.src=src,s.addEventListener("load",function(){},!1);var head=document.getElementsByTagName("head")[0];head.appendChild(s);
 	</script>
 	<?php
   }
