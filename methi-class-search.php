@@ -12,12 +12,12 @@ class MethiSearch {
     public function __construct() {
 
         global $pluginUrl, $pluginDir, $post, $wpdb;
-
+		
         self::$pluginurl = $pluginUrl;
 
         self::$plugindir = $pluginDir;
 
-        //add_action("admin_init", array($this, "redirect_to_authentication"));
+        add_action("admin_init", array($this, "count_total_post"));
 
         add_action('admin_enqueue_scripts', array($this, 'addscriptAdmin'));
 
@@ -27,47 +27,49 @@ class MethiSearch {
 		
         add_action('admin_menu', array($this, "my_plugin_menu"));
 		
-		add_action( 'wp_ajax_home_page_import_all_data', array($this, "home_page_import_all_data"));
-		add_action( 'wp_ajax_nopriv_home_page_import_all_data', array($this, "home_page_import_all_data"));
+		add_action( 'wp_ajax_reindex_all_data', array($this, "reindex_all_data"));
+		add_action( 'wp_ajax_nopriv_reindex_all_data', array($this, "reindex_all_data"));
 		
-		add_action('methiAuth', array($this, "methiAuth"));
+		//add_action('methiAuth', array($this, "methiAuth"));
+		add_action( 'wp_ajax_methiAuth', array($this, "methiAuth"));
+		add_action( 'wp_ajax_nopriv_methiAuth', array($this, "methiAuth"));
+		
 		//add_action('home_page_import_all_data', array($this, 'home_page_import_all_data'), 8);
 		
 		add_action('wp_head', array($this, "pluginname_ajaxurl"));
     }
 	
+	public function count_total_post()
+	{
+		$count_posts = wp_count_posts()->publish;
+	}
+	
 	function my_plugin_menu() {
 		
-        add_menu_page('Methi Search', 'Methi Search', 8, 'methi_search', array($this, 'methiauth'));
+        add_menu_page('Methi Search', 'Methi Search', 8, 'methi_search', array($this, 'methiAuth'));
 
-        add_submenu_page('methi_search', 'Methi Search', 'Import all data', 8, 'import_all_post', array($this, 'home_page_import_all_data'));
+        add_submenu_page('methi_search', 'Methi Search', 'Settings', 8, 'settings', array($this, 'reindex_all_data'));
 
     }
-	
-	public function redirect_to_authentication()
-	{
-	
-		if(self::$notauthenticate == 1)
-		{
-		echo "in if";
-			wp_redirect(admin_url('/post-new.php?post_type=page', 'http'), 301);
-			exit();
-		}
-	}
 	
 	function pluginname_ajaxurl() {
 	?>
 	<script type="text/javascript">
-		var ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>';
+		var ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>';	
 	</script>
 	<?php
 	}
 
 	function methiauth() {
+	
+	$my_simple_links = get_option(self::$METHI_SECRETKEY_ARRAY);
 		
-		if($_REQUEST && isset($_REQUEST["submit_methi_authentication"]))
+	if(empty($my_simple_links) || $my_simple_links  == "" || $my_simple_links == NULL)
+	{	
+	
+		if($_POST && isset($_POST["submitallpost"]) && $_POST["submitallpost"] == 1)
 		{
-			$APPBASE_SECRET_KEY = $_REQUEST['appbase_secret_token'];
+			$APPBASE_SECRET_KEY = $_REQUEST['appbasesecretkey'];
 			$result = explode (":", $APPBASE_SECRET_KEY);
 			$keyarray = array("app_name", "write_access_username", "write_access_password", "read_access_username", "read_access_password");
 			
@@ -76,11 +78,15 @@ class MethiSearch {
 			if(!empty($finalsecretarray))
 			{
 				update_option(self::$METHI_SECRETKEY_ARRAY, $finalsecretarray );
+				$this->indexallpost();
 			}
 		}
-		
         include 'methiauthentication.php';
-
+	}
+	else
+	{
+		do_action("wp_ajax_reindex_all_data");
+	}
     }
 	
 	public function redirect($url)
@@ -100,17 +106,10 @@ class MethiSearch {
 		exit();
 	}
 	
-	function home_page_import_all_data() {
-		
-		$my_simple_links = get_option(self::$METHI_SECRETKEY_ARRAY);
-		
-	if(empty($my_simple_links) || $my_simple_links  == "" || $my_simple_links == NULL)
-	{
-		$this->redirect(admin_url("/admin.php?page=methi_search"));
-	}
-		
-	if($_POST && isset($_POST["submitallpost"]) && $_POST["submitallpost"] == 1)
-	{
+	
+	public function indexallpost(){
+	
+	$my_simple_links = get_option(self::$METHI_SECRETKEY_ARRAY);
 		
 		$args = array(
 		'posts_per_page'   => -1,
@@ -132,19 +131,69 @@ class MethiSearch {
 	 );
 
 	$posts = get_posts($args);
+	$totalpostcount = count($posts);
 	
 	/*echo "<pre>";
 	print_r($posts);
 	die;*/
 	
+	/* Close ES start*/
+	$closeesargs = array(
+	    'method' => 'POST',
+        'headers' => array(
+          "Authorization" => "Basic ".base64_encode($my_simple_links['write_access_username'].":".$my_simple_links['write_access_password'])
+        ),
+		'body' => ''
+	); 
+	
+		$closeesresponse = wp_remote_post("http://".$my_simple_links['write_access_username'].":".$my_simple_links['write_access_password']."@scalr.api.appbase.io/".$my_simple_links['app_name']."/_close", $closeesargs);
+	/* Close ES end*/
+	
+	/* Update Settings start */
+	 $updatesettingsargs = array(
+	    'method' => 'PUT',
+        'headers' => array(
+          "Authorization" => "Basic ".base64_encode($my_simple_links['write_access_username'].":".$my_simple_links['write_access_password'])
+        ),
+		'body' => '{ "analysis": { "filter": { "nGram_filter": { "type": "nGram", "min_gram": 2, "max_gram": 20, "token_chars": [ "letter", "digit", "punctuation", "symbol" ] } }, "analyzer": { "nGram_analyzer": { "type": "custom", "tokenizer": "whitespace", "filter": [ "lowercase", "asciifolding", "nGram_filter" ] }, "body_analyzer": { "type": "custom", "tokenizer": "standard", "filter": [ "lowercase", "asciifolding", "stop", "snowball", "word_delimiter" ] }, "title_default_analyzer": { "type": "custom", "tokenizer": "standard", "filter": [ "lowercase", "asciifolding" ] }, "whitespace_analyzer": { "type": "whitespace", "tokenizer": "standard", "filter": [ "lowercase", "asciifolding" ] } } } }'
+      ); 
+	$updatesettingresponse = wp_remote_post("http://".$my_simple_links['write_access_username'].":".$my_simple_links['write_access_password']."@scalr.api.appbase.io/".$my_simple_links['app_name']."/_settings", $updatesettingsargs);
+	/* Update Settings end */
+	
+	/* Open ES start*/
+	$openesargs = array(
+	    'method' => 'POST',
+        'headers' => array(
+          "Authorization" => "Basic ".base64_encode($my_simple_links['write_access_username'].":".$my_simple_links['write_access_password'])
+        ),
+		'body' => ''
+	); 
+		$openesresponse = wp_remote_post("http://".$my_simple_links['write_access_username'].":".$my_simple_links['write_access_password']."@scalr.api.appbase.io/".$my_simple_links['app_name']."/_open", $openesargs);
+	/* Open ES end*/
+	
+	
+	/* Set Mapping start */
+	$setmappingargs = array(
+	    'method' => 'PUT',
+        'headers' => array(
+          "Authorization" => "Basic ".base64_encode($my_simple_links['write_access_username'].":".$my_simple_links['write_access_password'])
+        ),
+        'body' => '{ "article": { "properties": { "title": { "type": "multi_field", "fields": { "title_simple": { "type": "string", "analyzer": "title_default_analyzer" }, "title_ngrams": { "type": "string", "index_analyzer": "nGram_analyzer", "search_analyzer": "whitespace_analyzer" } } }, "meta_description": { "type": "string", "analyzer": "body_analyzer" }, "tags": { "type": "string", "index": "not_analyzed" }, "keywords": { "type": "string", "index": "not_analyzed" }, "link": { "type": "string", "index": "not_analyzed" }, "image_url": { "type": "string", "index": "not_analyzed" }, "videos_url": { "type": "string", "index": "not_analyzed" }, "body": { "type": "string", "analyzer": "body_analyzer" }, "updated_at": { "type": "date", "format" : "yyyy-MM-dd HH:mm:ss" }, "created_at": { "type": "date", "format" : "yyyy-MM-dd HH:mm:ss" } } } }'
+      );
+	$setmappingresponse = wp_remote_post("http://".$my_simple_links['write_access_username'].":".$my_simple_links['write_access_password']."@scalr.api.appbase.io/".$my_simple_links['app_name']."/_mapping/article", $setmappingargs);
+	
+	/* Set Mapping end */
+	
+	$postcount = 0; 
     foreach($posts as $post) {
 	
 	$postimage = wp_get_attachment_url( get_post_thumbnail_id($post->ID) );
 	$alltags = wp_get_post_tags($post->ID);
 	
+	$tagarray = array();
 	if($alltags != '' && $alltags != null && !empty($alltags))
 	{
-		$tagarray = array();
+		
 		foreach($alltags as $tag)
 		{
 			array_push($tagarray, $tag->name);
@@ -161,7 +210,7 @@ class MethiSearch {
         ),
         'body' => json_encode(array(
           "title" => $post->post_title,
-		  "body" => $post->post_content,
+		  "body" => strip_tags($post->post_content),
 		  "link" => get_permalink($post->ID),
 		  "image_url" => $postimage,
 		  "tags" => json_encode($tagarray),
@@ -173,7 +222,7 @@ class MethiSearch {
       );
 	  
       $response = wp_remote_post("https://".$my_simple_links['write_access_username'].":".$my_simple_links['write_access_password']."@scalr.api.appbase.io/".$my_simple_links['app_name']."/article/$post->ID", $args);
-      
+      $postcount++;
 		if ( is_wp_error( $response ) ) {
 		   $error_message = $response->get_error_message();
 		   //echo "Something went wrong: $error_message";
@@ -183,17 +232,44 @@ class MethiSearch {
 		   /* echo 'Response:<pre>';
 		   print_r( $response['response']['message'] );
 		   echo '</pre>'; */
-		   echo "success";
+		   //echo "success";
+		   echo $totalpostcount."/".$postcount."_";
+			//just a usual sleep
+			sleep(1);
+			ob_flush();
+			flush();
+
 		}
     }
 	wp_die();
-   }
+	}
+	
+	
+	function reindex_all_data() {
+	
+	$my_simple_links = get_option(self::$METHI_SECRETKEY_ARRAY);
+		
+	if(empty($my_simple_links) || $my_simple_links  == "" || $my_simple_links == NULL)
+	{
+		$this->redirect(admin_url("/admin.php?page=methi_search"));
+	}
+	
+	if($_POST && isset($_POST["reindexallpost"]) && $_POST["reindexallpost"] == 1)
+	{
+		$this->indexallpost();
+		wp_die();
+	}
    
-   include "importallpost.php";
+	include "settings.php";
   }
   
     public function addscriptAdmin() {
-            wp_enqueue_script("methi-serach-admin", self::$pluginurl . "lib/js/search.js");
+	?>
+	<script type="text/javascript">
+		var adminurl = '<?php echo admin_url('admin.php'); ?>';	
+	</script>
+	<?php
+        wp_enqueue_script("methi-serach-admin", self::$pluginurl . "lib/js/search.js");
     }
 	
 	public function addsearchscriptfooter() {
@@ -246,7 +322,7 @@ class MethiSearch {
 					),
 					'body' => json_encode(array(
 					  "title" => $post->post_title,
-					  "body" => $post->post_content,
+					  "body" => strip_tags($post->post_content),
 					  "link" => get_permalink($post->ID),
 					  "image_url" => $postimage,
 					  "tags" => json_encode($tagarray),
