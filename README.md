@@ -6,7 +6,7 @@ The [Methi Search WordPress Plugin](https://methi.io) is a blazing fast search p
 
 1. Go to [http://methi.io](http://methi.io) and sign up.
 2. After logging in to Methi, get/copy the Methi Magic key.
-3. Install the Swiftype Search Wordpress plugin in your Wordpress dashboard.
+3. Install the Methi Search Wordpress plugin in your Wordpress dashboard.
 4. Activate the plugin through the 'Plugins' menu in WordPress.
 5. Go to the Methi Search plugin page and enter your Magic key
 6. Index all the posts by clicking the "Synchronize with Appbase" button.
