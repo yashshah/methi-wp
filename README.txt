@@ -35,3 +35,18 @@ Usually, it may be disabled by your WordPress template. Make sure the search wid
 = Does Methi search support WordPress Multisite? =
 
 We don't right now but it will be released in next stable release. Stay tuned.
+
+
+== Screenshots ==
+
+1. Detailed, real-time mobile optimized search allows you to get relevant results. 
+2. Options for Facets search
+
+== Changelog ==
+
+= 0.1 =
+Initial Release
+
+== Upgrade Notice ==
+= 0.1 =
+Initial Release
