@@ -8,7 +8,7 @@
 			<td><input type='text' name='appbase_secret_token' class="appbaseform-elements" id="appbase_secret_token" /></td>
         </tr>
 		 <tr>
-        <td colspan="3"><input type="button" name="submitallpost" value="Index Post" id="submitallpost"/></td>
+        <td colspan="3"><input type="button" name="submitallpost" value="Index Post" id="submitallpost" class="indexpostbutton"/></td>
     </tr>
 </table>
 </form>
