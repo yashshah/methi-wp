@@ -313,7 +313,7 @@ class MethiSearch {
 			$my_simple_links = get_option(self::$METHI_SECRETKEY_ARRAY);
             ?>
 			<script type="text/javascript">
-			var appbase_variables={app_name:"<?php echo $my_simple_links['app_name']; ?>",credentials:"<?php echo $my_simple_links['write_access_username'].":".$my_simple_links['write_access_password']; ?>",index_document_type:"article",grid:true,filter:true},src="https://s3-us-west-1.amazonaws.com/methi/methi/js/app.js",s=document.createElement("script");s.type="text/javascript",s.async=!0,s.src=src,s.addEventListener("load",function(){},!1);var head=document.getElementsByTagName("head")[0];head.appendChild(s);
+			var appbase_variables={app_name:"<?php echo $my_simple_links['app_name']; ?>",credentials:"<?php echo $my_simple_links['write_access_username'].":".$my_simple_links['write_access_password']; ?>",index_document_type:"article",grid:true,filter:true},src="http://cdn.appbase.io/methi/js/app.js",s=document.createElement("script");s.type="text/javascript",s.async=!0,s.src=src,s.addEventListener("load",function(){},!1);var head=document.getElementsByTagName("head")[0];head.appendChild(s);
 			</script>
 			<?php
 			wp_enqueue_script("methi-serach-fromt", self::$pluginurl . "lib/js/search-front.js");
