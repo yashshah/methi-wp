@@ -3,7 +3,7 @@
 <form name="allpostsend_form" action="" method="post">
 <table id="methiauth"> 
 	<tr>
-        <td colspan="3"><input type="button" name="reindexallpost" value="Reindex Your Post" id="reindexallpost"/></td>
+        <td colspan="3"><input type="button" name="reindexallpost" value="Reindex Your Post" id="reindexallpost" class="indexpostbutton"/></td>
     </tr>
 </table>
 </form>
