@@ -7,44 +7,29 @@ Description: Methi is an awesome realtime, mobileview optimized search for your 
 Author: Yash Shah
 Author URI: https://twitter.com/yashshah
 */
-
-// For debugging purposes
-//error_reporting(E_ALL);
-//ini_set("display_errors", 1); 
-//define('WP-DEBUG', true);
-
 if (!defined('ABSPATH')) {
 	die('script kiddies, f*ck off');
 }
-
 global $pluginUrl,$pluginDir;
-
 $pluginDir=dirname(__FILE__)."/";
 $pluginUrl=WP_CONTENT_URL."/plugins/".  basename($pluginDir)."/";
-
 define('METHI_VERSION', '0.1');
-
 class MethiSearch {
-
     private static $pluginurl = "";
     private static $plugindir = "";
 	private static $notauthenticate = 0;
-
 /* ------------------------------------------------
 	Option with stores the methi secret key to index posts.
------------------------------------------------- */	
+	------------------------------------------------ */	
 	private static $METHI_SECRETKEY_ARRAY = "methi-secretkey-array";
-
 /* ------------------------------------------------
 	Constructor to initialize the all action of plugin
------------------------------------------------- */
+	------------------------------------------------ */
     public function __construct() {
-
         global $pluginUrl, $pluginDir, $post, $wpdb;
 		
         self::$pluginurl = $pluginUrl;
         self::$plugindir = $pluginDir;
-
         add_action("admin_init", array($this, "count_total_post"));
         add_action('admin_enqueue_scripts', array($this, 'addscriptAdmin'));
         add_action('wp_footer', array($this, 'addsearchscriptfooter'));
@@ -62,34 +47,31 @@ class MethiSearch {
 	
 /* ------------------------------------------------
 	Get count of total publish post
------------------------------------------------- */
+	------------------------------------------------ */
 	public function count_total_post()
 	{
 		$count_posts = wp_count_posts()->publish;
 	}
-
 /* ------------------------------------------------
 	Menu option for plugin
------------------------------------------------- */	
+	------------------------------------------------ */	
 	function my_plugin_menu() {
-        add_menu_page('Methi Search', 'Methi Search', 8, 'methi_search', array($this, 'methiAuth'));
-        add_submenu_page('methi_search', 'Methi Search', 'Settings', 8, 'settings', array($this, 'reindex_all_data'));
+        add_menu_page('Methi Search', 'Methi Search', 'manage_options', 'methi_search', array($this, 'methiAuth'));
+        //add_submenu_page('methi_search', 'Methi Search', 'Settings', 'manage_options', 'settings', array($this, 'reindex_all_data'));
     }
-
 /* ------------------------------------------------
 	Get path of default ajax of wordpress admin file
------------------------------------------------- */		
+	------------------------------------------------ */		
 	function pluginname_ajaxurl() {
 	?>
 	<script type="text/javascript">
-		var ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>';	
+		var ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>';		
 	</script>
 	<?php
 	}
-
 /* ------------------------------------------------
 	Methi Authentication of secrent key with index all post.
------------------------------------------------- */	
+	------------------------------------------------ */	
 	function methiauth() {
 	
 	$my_simple_links = get_option(self::$METHI_SECRETKEY_ARRAY);
@@ -138,11 +120,19 @@ class MethiSearch {
 	
 /* ------------------------------------------------
 	Methi index all publish post
------------------------------------------------- */		
+	------------------------------------------------ */		
 	public function indexallpost(){
 	
 	$my_simple_links = get_option(self::$METHI_SECRETKEY_ARRAY);
+	
+	$filename = self::$plugindir.'lib/progresscount.json';
 		
+	$fp = fopen($filename, "w+");
+	$array = array("total" => 0, "currentpost" => 0);
+	fwrite($fp, json_encode($array));
+	fclose($fp);
+	chmod($filename,0777);
+	
 		$args = array(
 		'posts_per_page'   => -1,
 		'offset'           => 0,
@@ -161,10 +151,15 @@ class MethiSearch {
 		'post_status'      => 'publish',
 		'suppress_filters' => true 
 	 );
-
 	$posts = get_posts($args);
 	$totalpostcount = count($posts);
 	
+	/* total post write to json file code */
+	$fp = fopen($filename, "w+");
+	$array = array("total" => $totalpostcount, "currentpost" => 0);
+	fwrite($fp, json_encode($array));
+	fclose($fp);
+						
 	/*echo "<pre>";
 	print_r($posts);
 	die;*/
@@ -214,10 +209,11 @@ class MethiSearch {
       );
 	$setmappingresponse = wp_remote_post("http://".$my_simple_links['write_access_username'].":".$my_simple_links['write_access_password']."@scalr.api.appbase.io/".$my_simple_links['app_name']."/_mapping/article", $setmappingargs);
 	/* Set Mapping end */
-	
+				
 	$postcount = 0; 
-    foreach($posts as $post) {
-	
+    foreach($posts as $post) 
+	{
+			
 	$postimage = wp_get_attachment_url( get_post_thumbnail_id($post->ID) );
 	$alltags = wp_get_post_tags($post->ID);
 	
@@ -253,30 +249,35 @@ class MethiSearch {
       );
 	  
       $response = wp_remote_post("https://".$my_simple_links['write_access_username'].":".$my_simple_links['write_access_password']."@scalr.api.appbase.io/".$my_simple_links['app_name']."/article/$post->ID", $args);
-      $postcount++;
+	  
 		if ( is_wp_error( $response ) ) {
 		   $error_message = $response->get_error_message();
 		   echo "error";
 		} 
 		else {
-		   /* echo 'Response:<pre>';
-		   print_r( $response['response']['message'] );
-		   echo '</pre>'; */
-		   //echo "success";
-		   echo $totalpostcount."/".$postcount."_";
-			//just a usual sleep
-			sleep(1);
-			ob_flush();
-			flush();
-
+		
+			if($response['response']['code'] == 200)
+			{
+				 $postcount++;
+				 $fp = fopen($filename, "w+");
+				$array = array("total" => $totalpostcount, "currentpost" => $postcount);
+				fwrite($fp, json_encode($array));
+				fclose($fp);
+			}
 		}
     }
+	
+	$fp = fopen($filename, "w+");
+	$array = array("total" => 0, "currentpost" => 0);
+	fwrite($fp, json_encode($array));
+	fclose($fp);
+				
 	wp_die();
 	}
 	
 /* ------------------------------------------------
 	Methi Reindex all post
------------------------------------------------- */	
+	------------------------------------------------ */	
   function reindex_all_data() {
 	
 	$my_simple_links = get_option(self::$METHI_SECRETKEY_ARRAY);
@@ -293,22 +294,21 @@ class MethiSearch {
 	}
 	include "settings.php";
   }
-
 /* ------------------------------------------------
 	Methi include the js in lib folder
------------------------------------------------- */	
+	------------------------------------------------ */	
     public function addscriptAdmin() {
 	?>
 	<script type="text/javascript">
-		var adminurl = '<?php echo admin_url('admin.php'); ?>';	
+		var adminurl = '<?php echo admin_url('admin.php'); ?>';
+		var pluginurl = '<?php echo self::$pluginurl; ?>';
 	</script>
 	<?php
         wp_enqueue_script("methi-serach-admin", self::$pluginurl . "lib/js/search.js");
     }
-
 /* ------------------------------------------------
 	Include Methi Search Script For the Front Side Search.
------------------------------------------------- */		
+	------------------------------------------------ */		
 	public function addsearchscriptfooter() {
 			$my_simple_links = get_option(self::$METHI_SECRETKEY_ARRAY);
             ?>
@@ -318,14 +318,12 @@ class MethiSearch {
 			<?php
 			wp_enqueue_script("methi-serach-fromt", self::$pluginurl . "lib/js/search-front.js");
     }
-
 /* ------------------------------------------------
 	Index post when new post inserted or reindex when existing post updated.
------------------------------------------------- */
+	------------------------------------------------ */
    function add_wpdata_to_appbase($post_id) {
 	
 		$post = wp_get_single_post( $post_id );
-
 		if($post->post_status == 'publish')
 		{
 			$my_simple_links = get_option(self::$METHI_SECRETKEY_ARRAY);
@@ -378,7 +376,6 @@ class MethiSearch {
   }
 }
 new MethiSearch();
-
 /* ------------------------------------------------
 	Create the object of methi search class.
------------------------------------------------- */
+	------------------------------------------------ */
