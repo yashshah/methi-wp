@@ -17,6 +17,7 @@ define('METHI_VERSION', '0.1');
 class MethiSearch {
     private static $pluginurl = "";
     private static $plugindir = "";
+	private static $filename = "";
 	private static $notauthenticate = 0;
 /* ------------------------------------------------
 	Option with stores the methi secret key to index posts.
@@ -30,6 +31,7 @@ class MethiSearch {
 		
         self::$pluginurl = $pluginUrl;
         self::$plugindir = $pluginDir;
+		self::$filename = $pluginDir.'lib/progresscount.json';
         add_action("admin_init", array($this, "count_total_post"));
         add_action('admin_enqueue_scripts', array($this, 'addscriptAdmin'));
         add_action('wp_footer', array($this, 'addsearchscriptfooter'));
@@ -75,7 +77,7 @@ class MethiSearch {
 	function methiauth() {
 	
 	$my_simple_links = get_option(self::$METHI_SECRETKEY_ARRAY);
-		
+	if(file_exists(self::$filename)){ unlink(self::$filename); }	
 		if(empty($my_simple_links) || $my_simple_links  == "" || $my_simple_links == NULL)
 		{	
 		
@@ -124,14 +126,12 @@ class MethiSearch {
 	public function indexallpost(){
 	
 	$my_simple_links = get_option(self::$METHI_SECRETKEY_ARRAY);
-	
-	$filename = self::$plugindir.'lib/progresscount.json';
 		
-	$fp = fopen($filename, "w+");
+	$fp = fopen(self::$filename, "w+");
 	$array = array("total" => 0, "currentpost" => 0);
 	fwrite($fp, json_encode($array));
 	fclose($fp);
-	chmod($filename,0777);
+	chmod(self::$filename,0777);
 	
 		$args = array(
 		'posts_per_page'   => -1,
@@ -155,7 +155,7 @@ class MethiSearch {
 	$totalpostcount = count($posts);
 	
 	/* total post write to json file code */
-	$fp = fopen($filename, "w+");
+	$fp = fopen(self::$filename, "w+");
 	$array = array("total" => $totalpostcount, "currentpost" => 0);
 	fwrite($fp, json_encode($array));
 	fclose($fp);
@@ -253,21 +253,32 @@ class MethiSearch {
 		if ( is_wp_error( $response ) ) {
 		   $error_message = $response->get_error_message();
 		   echo "error";
+		   if(!file_exists(self::$filename))
+		   {
+				wp_die();
+		   }
 		} 
 		else {
 		
 			if($response['response']['code'] == 200)
 			{
-				 $postcount++;
-				 $fp = fopen($filename, "w+");
-				$array = array("total" => $totalpostcount, "currentpost" => $postcount);
-				fwrite($fp, json_encode($array));
-				fclose($fp);
+				if(file_exists(self::$filename))
+				{
+					$postcount++;
+					$fp = fopen(self::$filename, "w");
+					$array = array("total" => $totalpostcount, "currentpost" => $postcount);
+					fwrite($fp, json_encode($array));
+					fclose($fp);
+				}
+				else
+				{
+					wp_die();
+				}
 			}
 		}
     }
 	
-	$fp = fopen($filename, "w+");
+	$fp = fopen(self::$filename, "w+");
 	$array = array("total" => 0, "currentpost" => 0);
 	fwrite($fp, json_encode($array));
 	fclose($fp);
