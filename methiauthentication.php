@@ -1,22 +1,36 @@
 <?php global $pluginUrl; ?>
-<h2>Methi Secret Token For Post Indexing</h2>
+<h2>Methi Search Plugin</h2>
 <form name="autentication_form" action="" method="post">
 	<table id="methiauth"> 
 		<tr>
-			<td>Appbase Secret Token : </td>
+			<h3>Get your Methi Magic Key</h3>
+		</tr>
+		<tr>
+			<p>
+				Thanks for installing Methi Search! Please enter your Methi Magic Key in the field below as found on <a href=
+				"http://methi.io/installation.html">methi installation</a> page. If you haven't used Methi before, it will ask you
+				to login via Google or Github to generate your unique magic key.
+			</p>
+			<p>
+				Once you enter the key, click 'Sync Data' to complete your installation. From now on, Methi will automatically 
+				sync new posts and changes to existing post data.
+			</p>
+		</tr>
+		<tr>
+			<td>Methi Magic Key: </td>
 			<td><input type='text' name='appbase_secret_token' class="appbaseform-elements" id="appbase_secret_token" />
 			</td>
 		</tr>
 		<tr>
 			<td colspan="3">
-				<input type="button" name="submitallpost" value="Index Post" id="submitallpost" class="indexpostbutton"/>
+				<input type="button" name="submitallpost" value="Sync Data" id="submitallpost" class="indexpostbutton"/>
 			</td>
 		</tr>
 	</table>
 </form>
 <?php $count_posts = wp_count_posts()->publish; ?>
 <div id="import_record_process">
-	<h2>Importing Records......</h2>
+	<h2>Syncing all posts...</h2>
 	<div class="percentagebar">
 		<div class="actualprocess">
 		</div>

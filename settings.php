@@ -1,17 +1,17 @@
 <?php global $pluginUrl; ?>
-<h2>You are all set now</h2>
+<h2>Methi Search Plugin</h2>
 <form name="allpostsend_form" action="" method="post">
 	<table id="methiauth"> 
 		<tr>
 			<td colspan="3">
-				<input type="button" name="reindexallpost" value="Reindex Your Post" id="reindexallpost" class="indexpostbutton"/>
+				<input type="button" name="reindexallpost" value="Re-sync Data" id="reindexallpost" class="indexpostbutton"/>
 			</td>
 		</tr>
 	</table>
 </form>
 <?php $count_posts = wp_count_posts()->publish; ?>
 <div id="import_record_process">
-	<h2>Importing Records......</h2>
+	<h2>Resyncing all posts...</h2>
 	<div class="percentagebar">
 		<div class="actualprocess">
 		</div>
@@ -21,7 +21,7 @@
 			<span id="precentageprogress">0</span>%
 		</div>
 		<div class="totalpostcount">
-			<span id="postcountprogress">0</span>/
+			<span id="postcountprogress">0</span> /
 			<?php echo $count_posts; ?>
 			<div>
 			</div>
