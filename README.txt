@@ -17,24 +17,24 @@ methi.io is a blazing fast search for your site that just works. It understands 
 3. Install the Methi Search wordpress plugin in your wordpress dashboard.
 4. Activate the plugin through the **Plugins** menu in WordPress.
 5. Go to the Methi Search plugin page and enter your Magic key
-6. Index all the posts by clicking the **Synchronize with Appbase** button.
+6. Index all the posts by clicking the **Sync Data** button.
 
-If you are having trouble, email us at search@methi.io 
+_If you are having trouble, email us at [search@methi.io](mailto:search@methi.io)._
 
 == Frequently Asked Questions ==
 _If you have feedback or suggestions, shoot us an email at [search@methi.io](mailto:search@methi.io)._
 
-= Where do I sign up for a Methi search account? =
+= Where do I sign up for a methi.io search account? =
 
 Sign up for a free account at [http://methi.io](http://methi.io)
 
-= Why search box is not being displayed on my site? =
+= Why is search box not being displayed on my site? =
 
-Usually, it may be disabled by your WordPress template. Make sure the search widget is configured in WordPress.
+Usually, it may be disabled by your WordPress template. Make sure the search widget is configured properly with WordPress.
 
 = Does Methi search support WordPress Multisite? =
 
-Methi search doesn't support Wordpress Multisite.
+We're thinking about it. Feel free to open a github issue or shoot us an email at [search@methi.io](mailto:search@methi.io) directly.
 
 
 == Screenshots ==
