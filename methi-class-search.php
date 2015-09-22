@@ -316,6 +316,7 @@ class MethiSearch {
 	</script>
 	<?php
         wp_enqueue_script("methi-serach-admin", self::$pluginurl . "lib/js/search.js");
+        wp_enqueue_style("methi-search-css", self::$pluginurl . "lib/css/methi-search.css");
     }
 /* ------------------------------------------------
 	Include Methi Search Script For the Front Side Search.
